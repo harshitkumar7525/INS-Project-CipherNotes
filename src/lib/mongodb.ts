@@ -3,7 +3,6 @@ import mongoose from "mongoose";
 const MONGODB_URI = process.env.MONGODB_URI as string;
 if (!MONGODB_URI) throw new Error("MONGODB_URI is not defined in environment");
 
-// Cache the connection across hot reloads in dev / serverless invocations.
 type Cached = { conn: typeof mongoose | null; promise: Promise<typeof mongoose> | null };
 const globalAny = global as unknown as { _mongoose?: Cached };
 const cached: Cached = globalAny._mongoose ?? { conn: null, promise: null };

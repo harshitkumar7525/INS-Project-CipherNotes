@@ -1,9 +1,5 @@
 import CryptoJS from "crypto-js";
 
-/**
- * DES encryption utilities.
- * Key is loaded from env (DES_SECRET_KEY) and never sent to the client.
- */
 const SECRET = process.env.DES_SECRET_KEY;
 
 function getKey() {
