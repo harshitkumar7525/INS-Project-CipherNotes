@@ -26,7 +26,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
     note: {
       _id: note._id,
       title: note.title,
-      content: safeDecrypt(note.content),
+      content: safeDecrypt(note.content, params.id),
       createdAt: note.createdAt,
       updatedAt: note.updatedAt,
     },
@@ -44,7 +44,10 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
     await connectDB();
     const update: Record<string, unknown> = {};
     if (parsed.data.title !== undefined) update.title = parsed.data.title;
-    if (parsed.data.content !== undefined) update.content = encryptDES(parsed.data.content);
+    if (parsed.data.content !== undefined) {
+      console.log(`\n[DES] Encrypting note content on PUT /api/notes/${params.id}`);
+      update.content = encryptDES(parsed.data.content, true);
+    }
     const note = await Note.findOneAndUpdate(
       { _id: params.id, user: auth.userId },
       update,
@@ -55,7 +58,7 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
       note: {
         _id: note._id,
         title: note.title,
-        content: safeDecrypt(note.content),
+        content: safeDecrypt(note.content, params.id),
         createdAt: note.createdAt,
         updatedAt: note.updatedAt,
       },
@@ -75,6 +78,9 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
   return NextResponse.json({ ok: true });
 }
 
-function safeDecrypt(ct: string) {
-  try { return decryptDES(ct); } catch { return ""; }
+function safeDecrypt(ct: string, id: string) {
+  try {
+    console.log(`\n[DES] Decrypting note content on GET /api/notes/${id}`);
+    return decryptDES(ct, true);
+  } catch { return ""; }
 }

@@ -18,7 +18,6 @@ export async function GET(req: NextRequest) {
   const filter: Record<string, unknown> = { user: auth.userId };
   if (q) filter.title = { $regex: q, $options: "i" };
   const notes = await Note.find(filter).sort({ updatedAt: -1 }).lean();
-  // Decrypt content before sending to the authenticated owner
   const decrypted = notes.map((n: any) => ({
     _id: n._id,
     title: n.title,
@@ -39,7 +38,8 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: parsed.error.issues[0].message }, { status: 400 });
     }
     await connectDB();
-    const ciphertext = encryptDES(parsed.data.content);
+    console.log("\n[DES] Encrypting note content on POST /api/notes");
+    const ciphertext = encryptDES(parsed.data.content, true);
     const note = await Note.create({
       user: auth.userId,
       title: parsed.data.title,
@@ -60,5 +60,8 @@ export async function POST(req: NextRequest) {
 }
 
 function safeDecrypt(ct: string) {
-  try { return decryptDES(ct); } catch { return ""; }
+  try {
+    console.log("\n[DES] Decrypting note content on GET /api/notes");
+    return decryptDES(ct, true);
+  } catch { return ""; }
 }
